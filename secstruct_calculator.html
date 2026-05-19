@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SecStruct Calculator · Sana A. E. Abzakh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --sage:#6D9773; --sage-light:#e8f0ea; --sage-mid:#c2d6c6;
+  --forest:#0C3B2E; --forest-mid:#1a5c46;
+  --tan:#BB8A52; --tan-light:#f5ead9; --tan-mid:#dfc09a;
+  --gold:#FFBA00; --gold-light:#fff8e0; --gold-mid:#ffd966;
+  --bg:#f4f5f0; --surface:#ffffff; --surface2:#eef0eb;
+  --border:#dde0d8; --border2:#c4c9bc;
+  --text:#0C3B2E; --text-soft:#2e5244; --muted:#6b7a6e;
+  --accent:#6D9773; --accent-dark:#4e7157; --accent-light:#e8f0ea;
+  --warn:#BB8A52; --warn-light:#f5ead9;
+  --red:#8b1a1a; --red-light:#fde8e8;
+  --blue:#1a5080; --blue-light:#e0eaf5; --blue-mid:#9bbdd4;
+  --purple:#4a1a80; --purple-light:#f0e8fd;
+  --mono:'DM Mono',monospace; --sans:'Syne',sans-serif;
+  --r:6px; --rlg:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+
+.top-bar{background:var(--forest);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(12,59,46,.18)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:26px;height:26px}
+.logo-title{font-size:16px;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1.1}
+.logo-sub{font-size:10px;font-family:var(--mono);color:var(--sage-mid);letter-spacing:.04em}
+.badge-engine{font-size:10px;font-family:var(--mono);padding:3px 10px;border-radius:99px;border:1px solid rgba(109,151,115,.5);color:var(--sage-mid);background:transparent;transition:all .3s}
+.badge-engine.ready{color:var(--gold);border-color:rgba(255,186,0,.4);background:rgba(255,186,0,.08)}
+.init-banner{background:rgba(12,59,46,.06);border-bottom:1px solid var(--border);padding:8px 2rem;font-size:11px;font-family:var(--mono);color:var(--muted);display:flex;align-items:center;gap:8px}
+.init-banner.hidden{display:none}
+.spinner-xs{width:12px;height:12px;flex-shrink:0;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.split{display:grid;grid-template-columns:500px 1fr;min-height:calc(100vh - 56px)}
+.panel-left{background:var(--surface);border-right:1px solid var(--border);padding:1.5rem;overflow-y:auto;display:flex;flex-direction:column;gap:1rem}
+.panel-right{background:var(--bg);padding:1.5rem;overflow-y:auto}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:1.25rem}
+.card-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem;display:flex;align-items:center;gap:6px}
+.card-title-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
+
+/* ── Solvent toggle ── */
+.solvent-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem}
+.solvent-label{font-size:11px;font-family:var(--mono);color:var(--muted);white-space:nowrap}
+.solvent-toggle{display:flex;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.solvent-btn{font-size:11px;font-family:var(--mono);padding:5px 14px;cursor:pointer;background:var(--surface2);color:var(--muted);border:none;transition:all .15s}
+.solvent-btn.active{background:var(--forest);color:#fff;font-weight:600}
+.solvent-btn:first-child{border-right:1px solid var(--border2)}
+.solvent-note{font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:4px;padding:5px 9px;background:var(--gold-light);border:1px solid var(--gold-mid);border-radius:var(--r)}
+
+/* ── Protein type toggle ── */
+.protein-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:.75rem;flex-wrap:wrap}
+.protein-toggle{display:flex;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;flex-wrap:wrap}
+.protein-btn{font-size:11px;font-family:var(--mono);padding:5px 12px;cursor:pointer;background:var(--surface2);color:var(--muted);border:none;transition:all .15s;white-space:nowrap}
+.protein-btn.active{background:var(--blue);color:#fff;font-weight:600}
+.protein-btn:first-child{border-right:1px solid var(--border2)}
+.protein-note{font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:4px;padding:5px 9px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:var(--r);line-height:1.7}
+.protein-note strong{color:var(--blue);font-weight:600}
+
+.ref-dropdown-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem}
+.ref-dropdown-label{font-size:10px;font-family:var(--mono);color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em}
+.ref-select{font-size:11px;font-family:var(--mono);padding:4px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--forest);cursor:pointer;outline:none;transition:border-color .15s}
+.ref-select:hover,.ref-select:focus{border-color:var(--accent)}
+
+.dropzone{border:2px dashed var(--sage-mid);border-radius:var(--rlg);padding:2rem 1rem;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;background:var(--surface2);position:relative}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--accent);background:var(--accent-light)}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{width:42px;height:42px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.drop-icon svg{width:20px;height:20px;stroke:var(--accent);fill:none;stroke-width:1.8}
+.drop-title{font-size:14px;font-weight:600;margin-bottom:3px;color:var(--forest)}
+.drop-sub{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.file-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.file-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);background:var(--accent-light);color:var(--accent-dark);border:1px solid var(--sage-mid);border-radius:99px;padding:2px 9px}
+.file-chip svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5}
+.loader-wrap{display:none;align-items:center;gap:10px;padding:10px 12px;background:var(--accent-light);border:1px solid var(--sage-mid);border-radius:var(--r);margin-top:8px;font-size:12px;color:var(--forest);font-family:var(--mono)}
+.loader-wrap.visible{display:flex}
+.spinner{width:14px;height:14px;flex-shrink:0;border:2px solid var(--sage-mid);border-top-color:var(--forest);border-radius:50%;animation:spin .8s linear infinite}
+.alert{display:none;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--r);margin-top:8px;font-size:11px;font-family:var(--mono)}
+.alert.visible{display:flex}
+.alert.error{background:var(--red-light);border:1px solid #f5b8b8;color:var(--red)}
+.alert.warn{background:var(--warn-light);border:1px solid var(--tan-mid);color:var(--warn)}
+.alert-icon svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5}
+
+.ref-table{width:100%;border-collapse:collapse}
+.ref-table th{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-family:var(--mono)}
+.ref-table td{padding:5px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px}
+.ref-table tr:last-child td{border-bottom:none}
+.ref-table tr:hover td{background:var(--surface2)}
+.ref-sources{font-size:9px;color:var(--muted);margin-top:7px;font-family:var(--mono);line-height:1.7}
+.ref-footnotes{margin-top:10px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-size:9px;font-family:var(--mono);color:var(--muted);line-height:1.8}
+.ref-footnotes strong{color:var(--text-soft);font-weight:600;display:block;margin-bottom:4px;font-size:9px;letter-spacing:.06em;text-transform:uppercase}
+.ref-footnotes ol{padding-left:14px;margin:0}
+.ref-footnotes li{margin-bottom:3px}
+
+/* ── 310-helix highlight row ── */
+.row-310{background:rgba(26,80,128,.05) !important}
+.row-310 td{color:var(--blue) !important}
+
+.badge{display:inline-block;font-size:9px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:600;letter-spacing:.03em}
+.badge-beta{background:rgba(12,59,46,.1);color:var(--forest)}
+.badge-beta-agg{background:rgba(12,59,46,.2);color:#052018}
+.badge-beta-anti{background:rgba(12,59,46,.3);color:#031410}
+.badge-helix{background:var(--accent-light);color:var(--accent-dark)}
+.badge-coil{background:var(--warn-light);color:var(--warn)}
+.badge-turn{background:var(--gold-light);color:#7a5800}
+.badge-310helix{background:var(--blue-light);color:var(--blue)}
+.badge-unassigned{background:var(--red-light);color:var(--red)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);padding:6px 13px;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;background:var(--surface);color:var(--text);transition:background .12s,border-color .12s}
+.btn:hover{background:var(--surface2);border-color:var(--accent)}
+.btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.btn.primary{background:var(--forest);color:#fff;border-color:var(--forest)}
+.btn.primary:hover{background:var(--forest-mid)}
+.btn.gold{background:var(--gold);color:var(--forest);border-color:var(--gold-mid);font-weight:600}
+.btn.gold:hover{background:var(--gold-mid)}
+.btn.sm{font-size:10px;padding:4px 10px}
+.btn.png{background:var(--purple-light);color:var(--purple);border-color:rgba(74,26,128,.25)}
+.btn.png:hover{background:rgba(74,26,128,.15)}
+.btn.doc{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);font-weight:600}
+.btn.doc:hover{background:rgba(26,80,128,.15)}
+
+.empty-state{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem 2rem;color:var(--muted)}
+.empty-state-icon{width:64px;height:64px;background:var(--surface);border:1px solid var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.empty-state-icon svg{width:32px;height:32px;stroke:var(--sage-mid);fill:none;stroke-width:1.5}
+.empty-state h3{font-size:15px;font-weight:600;color:var(--text-soft);margin-bottom:6px}
+.empty-state p{font-size:12px;font-family:var(--mono);line-height:1.7}
+.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;margin-top:1.25rem;display:flex;align-items:center;gap:8px}
+.section-label:first-child{margin-top:0}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:1.25rem;margin-bottom:1rem}
+.result-card-title{font-size:14px;font-weight:700;color:var(--forest);margin-bottom:.85rem;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.result-card-file{font-size:11px;font-weight:400;color:var(--muted);font-family:var(--mono)}
+.result-card-solvent{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:var(--forest);color:#fff;font-weight:600}
+.result-card-protein{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:var(--blue);color:#fff;font-weight:600}
+
+.amide-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:0}
+.amide-tab{font-size:12px;font-family:var(--mono);padding:8px 16px;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;background:none;border-left:none;border-right:none;border-top:none;transition:color .12s;display:flex;align-items:center;gap:6px;font-weight:500}
+.amide-tab:hover{color:var(--forest)}
+.amide-tab.active{color:var(--forest);border-bottom-color:var(--gold);font-weight:700}
+.amide-tab-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.amide-tab-pip.i{background:var(--accent)}
+.amide-tab-pip.ii{background:var(--blue)}
+.amide-tab-pip.iii{background:var(--purple)}
+.amide-range{font-size:9px;font-family:var(--mono);color:var(--muted);font-weight:400}
+
+.amide-panel{display:none;padding-top:1rem}
+.amide-panel.active{display:block}
+
+.metrics-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.85rem}
+.metric{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.7rem .85rem;min-width:90px;flex:1}
+.metric-val{font-size:20px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:3px}
+.metric-lbl{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.m-forest .metric-val{color:var(--forest)}
+.m-sage   .metric-val{color:var(--accent-dark)}
+.m-tan    .metric-val{color:#7a4e1a}
+.m-gold   .metric-val{color:#7a5800}
+.m-blue   .metric-val{color:var(--blue)}
+.m-purple .metric-val{color:var(--purple)}
+
+.vis-row{display:flex;align-items:flex-start;gap:1.25rem;margin-bottom:.85rem;flex-wrap:wrap}
+.pie-canvas-wrap{flex-shrink:0;width:130px;height:130px}
+.pie-legend{flex:1;min-width:120px;padding-top:4px}
+.pie-legend-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.pie-swatch{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.pie-legend-name{font-size:10px;font-family:var(--mono);color:var(--muted);flex:1}
+.pie-legend-pct{font-size:10px;font-family:var(--mono);font-weight:600;color:var(--forest)}
+
+.beta-breakdown{background:rgba(12,59,46,.04);border:1px solid rgba(12,59,46,.12);border-radius:var(--r);padding:9px 12px;margin-bottom:.85rem}
+.beta-breakdown-title{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);margin-bottom:8px;font-family:var(--mono)}
+.beta-breakdown-rows{display:flex;gap:7px;flex-wrap:wrap}
+.beta-sub{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;min-width:100px;flex:1}
+.beta-sub-val{font-size:20px;font-weight:700;color:var(--forest);line-height:1}
+.beta-sub-lbl{font-size:9px;font-family:var(--mono);color:var(--muted);margin-top:3px;text-align:center}
+
+.sub-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:.75rem;margin-top:.25rem}
+.sub-tab{font-size:10px;font-family:var(--mono);padding:5px 12px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-left:none;border-right:none;border-top:none;transition:color .12s}
+.sub-tab:hover{color:var(--forest)}
+.sub-tab.active{color:var(--forest);border-bottom-color:var(--sage);font-weight:600}
+.sub-panel{display:none}
+.sub-panel.active{display:block}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 9px;border-bottom:1px solid var(--border);font-family:var(--mono)}
+tbody td{padding:7px 9px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface2)}
+
+.ratio-chip{display:inline-flex;align-items:center;gap:6px;background:var(--gold-light);border:1px solid var(--gold-mid);border-radius:var(--r);padding:5px 10px;font-family:var(--mono);font-size:11px;margin-bottom:6px;color:var(--forest)}
+.ratio-chip strong{font-weight:700}
+
+.no-data{padding:14px;text-align:center;font-size:11px;font-family:var(--mono);color:var(--muted);background:var(--surface2);border-radius:var(--r)}
+.region-divider{height:1px;background:var(--border);margin:.75rem 0}
+.dl-row{display:flex;gap:7px;margin-top:.75rem;flex-wrap:wrap;align-items:center}
+.area-note{font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:5px}
+.pm-footnote{font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:6px;padding:5px 9px;background:var(--gold-light);border:1px solid var(--gold-mid);border-radius:var(--r);line-height:1.8}
+
+.png-toast{position:fixed;bottom:24px;right:24px;background:var(--forest);color:#fff;font-size:11px;font-family:var(--mono);padding:10px 16px;border-radius:var(--r);box-shadow:0 4px 20px rgba(12,59,46,.3);z-index:9999;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
+.png-toast.show{opacity:1;transform:translateY(0)}
+.png-capture-wrap{background:var(--surface);border-radius:var(--rlg)}
+
+.signature{margin-top:2rem;padding:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);text-align:right}
+.sig-rule{display:inline-block;width:80px;height:2px;background:linear-gradient(90deg,transparent,var(--gold));margin-bottom:8px}
+.sig-name{font-family:'Georgia',serif;font-size:16px;font-style:italic;color:var(--forest);letter-spacing:.01em;margin-bottom:3px}
+.sig-role{font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:4px}
+.sig-email{font-size:10px;font-family:var(--mono);color:var(--accent-dark)}
+.sig-email a{color:var(--accent-dark);text-decoration:none}
+.sig-email a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 26 26" fill="none">
+        <line x1="3" y1="21" x2="23" y2="21" stroke="#0C3B2E" stroke-width="1.3" stroke-linecap="round"/>
+        <rect x="4"    y="16" width="2"   height="5"  rx=".8" fill="#0C3B2E" opacity=".5"/>
+        <rect x="7.5"  y="12" width="2"   height="9"  rx=".8" fill="#0C3B2E" opacity=".7"/>
+        <rect x="11"   y="6"  width="2.5" height="15" rx=".8" fill="#0C3B2E"/>
+        <rect x="15"   y="10" width="2"   height="11" rx=".8" fill="#0C3B2E" opacity=".75"/>
+        <rect x="18.5" y="14" width="2"   height="7"  rx=".8" fill="#0C3B2E" opacity=".45"/>
+        <path d="M9.5 4 C10.5 2.5,12 5.5,13.5 4 C15 2.5,16.5 5.5,17.5 4" stroke="#0C3B2E" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-title">SecStruct Calculator</div>
+      <div class="logo-sub">Amide I · II · III · FTIR · H₂O / D₂O</div>
+    </div>
+  </div>
+  <span class="badge-engine" id="py-badge">⏳ loading engine…</span>
+</div>
+
+<div class="init-banner" id="init-banner">
+  <div class="spinner-xs"></div>
+  <span id="init-msg">Initialising Pyodide — first load ~10 s, then cached…</span>
+</div>
+
+<div class="split">
+<div class="panel-left">
+
+  <!-- Downloads card -->
+  <div class="card">
+    <div class="card-title"><span class="card-title-dot"></span>Downloads</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <!-- Example CSV -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:9px 12px;background:var(--gold-light);border:1px solid var(--gold-mid);border-radius:var(--r)">
+        <p style="font-size:11px;font-family:var(--mono);color:var(--forest-mid);flex:1"><strong>Example file</strong><br/>PeakFit CSV: Peak Type, a0, a1</p>
+        <button class="btn gold sm" onclick="downloadExampleCSV()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </button>
+      </div>
+      <!-- Documentation PDF -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:9px 12px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:var(--r)">
+        <p style="font-size:11px;font-family:var(--mono);color:var(--blue);flex:1"><strong>Documentation</strong><br/>Usage guide &amp; assignment reference</p>
+        <button class="btn doc sm" onclick="downloadDocumentation()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analysis settings card -->
+  <div class="card">
+    <div class="card-title"><span class="card-title-dot"></span>Analysis settings</div>
+
+    <!-- Solvent toggle -->
+    <div class="solvent-row">
+      <span class="solvent-label">Solvent:</span>
+      <div class="solvent-toggle">
+        <button class="solvent-btn active" id="btn-h2o" onclick="setSolvent('H2O')">H₂O</button>
+        <button class="solvent-btn"        id="btn-d2o" onclick="setSolvent('D2O')">D₂O</button>
+      </div>
+    </div>
+    <div class="solvent-note" id="solvent-note">
+      H₂O: Amide I (1600–1700), Amide II (1510–1580), Amide III (1220–1340)
+    </div>
+
+    <!-- Protein type toggle -->
+    <div class="protein-row" style="margin-top:.85rem">
+      <span class="solvent-label" style="padding-top:5px">Protein type:</span>
+      <div style="flex:1">
+        <div class="protein-toggle">
+          <button class="protein-btn active" id="btn-globular" onclick="setProteinType('globular')">Globular</button>
+          <button class="protein-btn"        id="btn-310"      onclick="setProteinType('310helix')">3₁₀-Helix rich</button>
+        </div>
+        <div class="protein-note" id="protein-note">
+          <strong>Globular</strong> — β-turns assigned at 1660–1666 cm⁻¹ (default for albumin, IgG, enzymes)
+        </div>
+      </div>
+    </div>
+
+    <!-- File upload -->
+    <div style="margin-top:.85rem">
+      <div class="card-title" style="margin-bottom:.55rem"><span class="card-title-dot"></span>Upload PeakFit files</div>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="file-input" accept=".csv" multiple/>
+        <div class="drop-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="drop-title">Drop files or click to browse</div>
+        <div class="drop-sub">.csv · multiple files</div>
+      </div>
+      <div id="file-chips" class="file-chips"></div>
+      <div class="loader-wrap" id="proc-loader"><div class="spinner"></div><span id="proc-msg">Processing…</span></div>
+      <div class="alert" id="proc-alert">
+        <span class="alert-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+        <span id="proc-alert-msg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Amide I assignment reference -->
+  <div class="card">
+    <div class="card-title"><span class="card-title-dot"></span>Amide I peak assignment</div>
+    <div class="ref-dropdown-row">
+      <span class="ref-dropdown-label">Table:</span>
+      <select class="ref-select" id="ref-table-select" onchange="renderRefTable(this.value)">
+        <option value="H2O">H₂O</option>
+        <option value="D2O">D₂O</option>
+      </select>
+    </div>
+    <div id="ref-table-container"></div>
+  </div>
+
+  <!-- Amide II & III reference -->
+  <div class="card">
+    <div class="card-title"><span class="card-title-dot"></span>Amide II &amp; III reference</div>
+    <table class="ref-table">
+      <thead><tr><th>Region</th><th>Range (cm⁻¹)</th><th>Assignment</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--blue);font-weight:600">Amide II</td><td>~1545</td><td><span class="badge badge-helix">α-Helix</span></td></tr>
+        <tr><td style="color:var(--blue);font-weight:600">Amide II</td><td>~1530</td><td><span class="badge badge-beta">β-Sheet</span></td></tr>
+        <tr><td style="color:var(--blue);font-weight:600">Amide II</td><td>1528; 1577</td><td><span class="badge badge-turn">β-Turn</span></td></tr>
+        <tr><td style="color:var(--purple);font-weight:600">Amide III</td><td>1293–1331</td><td><span class="badge badge-helix">α-Helix</span></td></tr>
+        <tr><td style="color:var(--purple);font-weight:600">Amide III</td><td>1223–1251</td><td><span class="badge badge-beta">β-Sheet</span></td></tr>
+        <tr><td style="color:var(--purple);font-weight:600">Amide III</td><td>1244–1290</td><td><span class="badge badge-coil">Unord.+Turn</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="signature">
+    <div class="sig-rule"></div>
+    <div class="sig-name">Sana A. E. Abzakh</div>
+    <div class="sig-role">Secondary Structure Calculator · Amide I/II/III FTIR</div>
+    <div class="sig-email"><a href="mailto:sanaabzakh262@gmail.com">sanaabzakh262@gmail.com</a></div>
+  </div>
+
+</div><!-- end panel-left -->
+
+<div class="panel-right" id="panel-right">
+  <div id="empty-state" class="empty-state">
+    <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M2 20h20M6 20V10M12 20V4M18 20v-6"/></svg></div>
+    <h3>No results yet</h3>
+    <p>Choose a solvent &amp; protein type, upload PeakFit files.<br/>Each result shows Amide I, II, and III tabs<br/>with their own charts and percentages.</p>
+  </div>
+  <div id="results-area"></div>
+  <div id="comparison-area"></div>
+</div>
+</div>
+
+<div class="png-toast" id="png-toast">📷 PNG saved!</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  Python engine                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script id="py-src" type="text/x-python">
+import re, json
+from pathlib import Path
+
+# ── H₂O · Globular (default) ─────────────────────────────────────
+ASSIGNMENT_H2O_GLOBULAR = [
+    ("Aggregated β-Sheet",    1600.0, 1627.9, "β-Sheet",    "aggregated"),
+    ("β-Sheet (Main)",        1628.0, 1642.9, "β-Sheet",    "main"),
+    ("Random Coil",           1643.0, 1649.4, "Random Coil", ""),
+    ("α-Helix",               1649.5, 1659.9, "α-Helix",    ""),
+    ("β-Turns & Loops",       1660.0, 1689.9, "β-Turns",    ""),
+    ("Anti-parallel β-Sheet", 1690.0, 1700.0, "β-Sheet",    "antiparallel"),
+]
+
+# ── H₂O · 3₁₀-Helix rich ─────────────────────────────────────────
+# 1660–1666 carved out for 3₁₀-Helix; remainder stays β-Turns
+ASSIGNMENT_H2O_310 = [
+    ("Aggregated β-Sheet",    1600.0, 1627.9, "β-Sheet",    "aggregated"),
+    ("β-Sheet (Main)",        1628.0, 1642.9, "β-Sheet",    "main"),
+    ("Random Coil",           1643.0, 1649.4, "Random Coil", ""),
+    ("α-Helix",               1649.5, 1659.9, "α-Helix",    ""),
+    ("3₁₀-Helix",             1660.0, 1666.0, "3₁₀-Helix",  ""),   # ← new sub-range
+    ("β-Turns & Loops",       1666.1, 1689.9, "β-Turns",    ""),
+    ("Anti-parallel β-Sheet", 1690.0, 1700.0, "β-Sheet",    "antiparallel"),
+]
+
+# ── D₂O · Globular (default) ─────────────────────────────────────
+ASSIGNMENT_D2O_GLOBULAR = [
+    ("Aggregated β-Sheet",    1600.0, 1625.9, "β-Sheet",    "aggregated"),
+    ("β-Sheet (Main)",        1630.0, 1642.9, "β-Sheet",    "main"),
+    ("Random Coil",           1643.0, 1649.4, "Random Coil", ""),
+    ("α-Helix",               1649.5, 1659.9, "α-Helix",    ""),
+    ("β-Turns & Loops",       1660.0, 1679.9, "β-Turns",    ""),
+    ("Anti-parallel β-Sheet", 1680.0, 1695.0, "β-Sheet",    "antiparallel"),
+]
+
+# ── D₂O · 3₁₀-Helix rich ─────────────────────────────────────────
+# Isotopic shift: 3₁₀-Helix moves to 1639–1643 cm⁻¹ in D₂O
+# This overlaps β-Sheet (Main) / Random Coil region, so we carve it out
+ASSIGNMENT_D2O_310 = [
+    ("Aggregated β-Sheet",    1600.0, 1625.9, "β-Sheet",    "aggregated"),
+    ("β-Sheet (Main)",        1626.0, 1638.9, "β-Sheet",    "main"),
+    ("3₁₀-Helix",             1639.0, 1643.0, "3₁₀-Helix",  ""),   # ← D₂O isotopic shift
+    ("Random Coil",           1643.1, 1649.4, "Random Coil", ""),
+    ("α-Helix",               1649.5, 1659.9, "α-Helix",    ""),
+    ("β-Turns & Loops",       1660.0, 1679.9, "β-Turns",    ""),
+    ("Anti-parallel β-Sheet", 1680.0, 1695.0, "β-Sheet",    "antiparallel"),
+]
+
+ASSIGNMENT_AMIDE2 = [
+    ("α-Helix (II)",   1540.0, 1550.0, "α-Helix"),
+    ("β-Sheet (II)",   1525.0, 1535.0, "β-Sheet"),
+    ("β-Turn (II)",    1510.0, 1524.9, "β-Turns"),
+    ("β-Turn (II)",    1570.0, 1580.0, "β-Turns"),
+    ("Amide II",       1510.0, 1580.0, "Unassigned II"),
+]
+ASSIGNMENT_AMIDE3 = [
+    ("α-Helix (III)",        1290.0, 1335.0, "α-Helix"),
+    ("β-Sheet (III)",        1220.0, 1255.0, "β-Sheet"),
+    ("Unordered+Turn (III)", 1244.0, 1292.0, "Random Coil"),
+]
+
+GROUP_ORDER_A1_GLOBULAR = ["β-Sheet","α-Helix","Random Coil","β-Turns","Unassigned"]
+GROUP_ORDER_A1_310      = ["β-Sheet","α-Helix","3₁₀-Helix","Random Coil","β-Turns","Unassigned"]
+GROUP_ORDER_A2 = ["α-Helix","β-Sheet","β-Turns","Unassigned II"]
+GROUP_ORDER_A3 = ["α-Helix","β-Sheet","Random Coil"]
+
+def get_a1_table(solvent, protein_type):
+    if solvent == "H2O":
+        return (ASSIGNMENT_H2O_310       if protein_type == "310helix"
+                else ASSIGNMENT_H2O_GLOBULAR)
+    else:
+        return (ASSIGNMENT_D2O_310       if protein_type == "310helix"
+                else ASSIGNMENT_D2O_GLOBULAR)
+
+def get_group_order(protein_type):
+    return GROUP_ORDER_A1_310 if protein_type == "310helix" else GROUP_ORDER_A1_GLOBULAR
+
+def assign(wn, table):
+    for entry in table:
+        lo, hi, group = entry[1], entry[2], entry[3]
+        if lo <= wn <= hi:
+            return entry[0], group, (entry[4] if len(entry) > 4 else "")
+    return "Unassigned", "Unassigned", ""
+
+def _try_float(v):
+    try: return float(str(v).replace(",", "."))
+    except: return None
+
+def _find_hdrs(headers):
+    ai = ci = None
+    for i, h in enumerate(headers):
+        h = h.strip().lower()
+        if re.search(r"\ba0\b|area", h): ai = i
+        if re.search(r"\ba1\b|center|wavenumber|position", h): ci = i
+    return ai, ci
+
+def _parse_delim(lines, delim):
+    peaks, hrow, ai, ci = [], None, None, None
+    for no, line in enumerate(lines):
+        if not line.strip() or line.strip().startswith("#"): continue
+        parts = [p.strip() for p in line.split(delim)]
+        if len(parts) < 2: continue
+        if hrow is None:
+            a, c = _find_hdrs([p.lower() for p in parts])
+            if a is not None and c is not None: hrow, ai, ci = no, a, c
+            continue
+        if len(parts) <= max(ai, ci): continue
+        ar = _try_float(parts[ai]); ce = _try_float(parts[ci])
+        if ar and ce and 1200 <= ce <= 1800 and ar > 0:
+            peaks.append({"area": ar, "center": ce})
+    return peaks
+
+def _parse_ws(lines):
+    peaks, hrow, ai, ci = [], None, None, None
+    for no, line in enumerate(lines):
+        if not line.strip() or line.strip().startswith("#"): continue
+        parts = line.split()
+        if len(parts) < 2: continue
+        if hrow is None:
+            a, c = _find_hdrs([p.lower() for p in parts])
+            if a is not None and c is not None: hrow, ai, ci = no, a, c
+            continue
+        if len(parts) <= max(ai, ci): continue
+        ar = _try_float(parts[ai]); ce = _try_float(parts[ci])
+        if ar and ce and 1200 <= ce <= 1800 and ar > 0:
+            peaks.append({"area": ar, "center": ce})
+    return peaks
+
+def _parse_fallback(lines):
+    peaks = []
+    for line in lines:
+        fs = [f for p in line.split() if (f := _try_float(p)) is not None]
+        if len(fs) < 2: continue
+        for f1, f2 in [(fs[0], fs[1]), (fs[1], fs[0])]:
+            if 1200 <= f1 <= 1800 and 0 < f2 < 1e7:
+                peaks.append({"area": f2, "center": f1}); break
+    return peaks
+
+def parse_all(content):
+    lines = [l.rstrip() for l in content.splitlines()]
+    for d in (",", "\t", ";"):
+        try:
+            p = _parse_delim(lines, d)
+            if p: return p
+        except: pass
+    try:
+        p = _parse_ws(lines)
+        if p: return p
+    except: pass
+    return _parse_fallback(lines)
+
+def region(peaks, lo, hi):
+    return [p for p in peaks if lo <= p["center"] <= hi]
+
+def calc(peaks, tbl, group_order):
+    if not peaks: return [], {}, 0.0, {}
+    tot = sum(p["area"] for p in peaks)
+    if tot == 0: return [], {}, 0.0, {}
+    det, gt, bs = [], {}, {}
+    for i, p in enumerate(peaks):
+        lbl, grp, sub = assign(p["center"], tbl)
+        pct = p["area"] / tot * 100
+        det.append({"peak": i+1, "area": p["area"], "center": p["center"],
+                    "detail_label": lbl, "group": grp, "sub": sub, "pct": pct})
+        gt[grp] = gt.get(grp, 0) + p["area"]
+        if grp == "β-Sheet" and sub:
+            bs[sub] = bs.get(sub, 0) + p["area"]
+    gs = {g: v/tot*100 for g, v in gt.items()}
+    bsp = {k: v/tot*100 for k, v in bs.items()}
+    return det, gs, tot, bsp
+
+def analyze_for_web(content, filename, solvent, protein_type):
+    sn = Path(filename).stem
+    all_peaks = parse_all(content)
+    if not all_peaks: return json.dumps({"error": "No peaks parsed."})
+    a1_tbl = get_a1_table(solvent, protein_type)
+    go     = get_group_order(protein_type)
+    a1p = region(all_peaks, 1599, 1700)
+    a2p = region(all_peaks, 1510, 1580)
+    a3p = region(all_peaks, 1210, 1360)
+    a1d, a1gs, a1tot, a1bs = calc(a1p, a1_tbl, go)       if a1p else ([], {}, 0, {})
+    a2d, a2gs, a2tot, _    = calc(a2p, ASSIGNMENT_AMIDE2, GROUP_ORDER_A2) if a2p else ([], {}, 0, {})
+    a3d, a3gs, a3tot, _    = calc(a3p, ASSIGNMENT_AMIDE3, GROUP_ORDER_A3) if a3p else ([], {}, 0, {})
+    alpha = a1gs.get("α-Helix", 0); beta = a1gs.get("β-Sheet", 0)
+    ratio = alpha / beta if beta > 0 else None
+    return json.dumps({
+        "sample_name": sn, "filename": filename,
+        "solvent": solvent, "protein_type": protein_type,
+        "amide1": {"details": a1d, "group_summary": a1gs, "total_area": a1tot,
+                   "beta_sub": a1bs, "group_order": go},
+        "amide2": {"details": a2d, "group_summary": a2gs, "total_area": a2tot,
+                   "group_order": GROUP_ORDER_A2},
+        "amide3": {"details": a3d, "group_summary": a3gs, "total_area": a3tot,
+                   "group_order": GROUP_ORDER_A3},
+        "ratio": ratio,
+    })
+</script>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+'use strict';
+let pyodide = null, allResults = [], currentSolvent = 'H2O', currentProteinType = 'globular';
+
+const GC = {
+  'β-Sheet':       {pie:'#0C3B2E', badge:'badge-beta'},
+  'α-Helix':       {pie:'#6D9773', badge:'badge-helix'},
+  'Random Coil':   {pie:'#BB8A52', badge:'badge-coil'},
+  'β-Turns':       {pie:'#FFBA00', badge:'badge-turn'},
+  '3₁₀-Helix':     {pie:'#1a5080', badge:'badge-310helix'},
+  'Unassigned':    {pie:'#8b1a1a', badge:'badge-unassigned'},
+  'Unassigned II': {pie:'#aaa',    badge:'badge-unassigned'},
+};
+const MC = {
+  'β-Sheet':'m-forest','α-Helix':'m-sage','Random Coil':'m-tan',
+  'β-Turns':'m-gold','3₁₀-Helix':'m-blue'
+};
+
+// ── Reference tables — four variants ───────────────────────────────
+const REF = {
+  H2O_globular:[
+    ['1600–1627.9',  'Aggregated β-Sheet',    'β-Sheet',    'badge-beta-agg',  '±2', '1624±1.0, 1627±2.0'],
+    ['1628–1642.9',  'β-Sheet (Main)',         'β-Sheet',    'badge-beta',      '±2', '1633±2.0, 1638±2.0, 1642±1.0'],
+    ['1643–1649.4',  'Random Coil',            'Random Coil','badge-coil',      '',   '1648±2.0'],
+    ['1649.5–1659.9','α-Helix',                'α-Helix',    'badge-helix',     '±3', '1656±2.0'],
+    ['1660–1689.9',  'β-Turns & Loops',        'β-Turns',    'badge-turn',      '',   '1667±1.0, 1675±1.0'],
+    ['1690.0–1700',  'Anti-parallel β-Sheet',  'β-Sheet',    'badge-beta-anti', '±2', '1680±2.0, 1685±2.0, 1691±2.0, 1696±2.0'],
+  ],
+  H2O_310:[
+    ['1600–1627.9',  'Aggregated β-Sheet',    'β-Sheet',    'badge-beta-agg',  '±2', '1624±1.0, 1627±2.0'],
+    ['1628–1642.9',  'β-Sheet (Main)',         'β-Sheet',    'badge-beta',      '±2', '1633±2.0, 1638±2.0, 1642±1.0'],
+    ['1643–1649.4',  'Random Coil',            'Random Coil','badge-coil',      '',   '1648±2.0'],
+    ['1649.5–1659.9','α-Helix',                'α-Helix',    'badge-helix',     '±3', '1656±2.0'],
+    ['1660–1666.0',  '3₁₀-Helix',             '3₁₀-Helix',  'badge-310helix',  '±2', '1660±1.0, 1666±1.0', true],
+    ['1666.1–1689.9','β-Turns & Loops',        'β-Turns',    'badge-turn',      '',   '1667±1.0, 1675±1.0'],
+    ['1690.0–1700',  'Anti-parallel β-Sheet',  'β-Sheet',    'badge-beta-anti', '±2', '1680±2.0, 1685±2.0, 1691±2.0, 1696±2.0'],
+  ],
+  D2O_globular:[
+    ['1600–1625.9',  'Aggregated β-Sheet',    'β-Sheet',    'badge-beta-agg',  '±2', '1624±4.0'],
+    ['1630–1642.9',  'β-Sheet (Main)',         'β-Sheet',    'badge-beta',      '±2', '1631±3.0, 1637±3.0'],
+    ['1643–1649.4',  'Random Coil',            'Random Coil','badge-coil',      '',   '1645±4.0'],
+    ['1649.5–1659.9','α-Helix',                'α-Helix',    'badge-helix',     '±3', '1653±4.0'],
+    ['1660–1679.9',  'β-Turns & Loops',        'β-Turns',    'badge-turn',      '',   '1663±4.0, 1671±3.0'],
+    ['1680–1695',    'Anti-parallel β-Sheet',  'β-Sheet',    'badge-beta-anti', '±2', '1675±5.0, 1683±2.0, 1689±2.0, 1694±2.0'],
+  ],
+  D2O_310:[
+    ['1600–1625.9',  'Aggregated β-Sheet',    'β-Sheet',    'badge-beta-agg',  '±2', '1624±4.0'],
+    ['1626–1638.9',  'β-Sheet (Main)',         'β-Sheet',    'badge-beta',      '±2', '1631±3.0, 1637±3.0'],
+    ['1639–1643.0',  '3₁₀-Helix',             '3₁₀-Helix',  'badge-310helix',  '±2', '1639±2.0, 1641±2.0', true],
+    ['1643.1–1649.4','Random Coil',            'Random Coil','badge-coil',      '',   '1645±4.0'],
+    ['1649.5–1659.9','α-Helix',                'α-Helix',    'badge-helix',     '±3', '1653±4.0'],
+    ['1660–1679.9',  'β-Turns & Loops',        'β-Turns',    'badge-turn',      '',   '1663±4.0, 1671±3.0'],
+    ['1680–1695',    'Anti-parallel β-Sheet',  'β-Sheet',    'badge-beta-anti', '±2', '1675±5.0, 1683±2.0, 1689±2.0, 1694±2.0'],
+  ],
+};
+
+const SOLVENT_NOTES = {
+  H2O:'H₂O: Amide I (1600–1700), Amide II (1510–1580), Amide III (1220–1340)',
+  D2O:'D₂O: Amide I (1600–1700), Amide II (1510–1580), Amide III (1220–1340)',
+};
+const PROTEIN_NOTES = {
+  globular: '<strong>Globular</strong> — β-turns assigned at 1660–1666 cm⁻¹ (default for albumin, IgG, enzymes)',
+  '310helix': '<strong>3₁₀-Helix rich</strong> — H₂O: 1660–1666 cm⁻¹ → 3₁₀-Helix &nbsp;|&nbsp; D₂O: 1639–1643 cm⁻¹ → 3₁₀-Helix (isotopic shift)',
+};
+
+function refKey() {
+  return `${currentSolvent}_${currentProteinType}`;
+}
+
+function renderRefTable(solventOverride) {
+  const s = solventOverride || currentSolvent;
+  const key = `${s}_${currentProteinType}`;
+  const rows = REF[key] || REF[`${s}_globular`];
+  document.getElementById('ref-table-container').innerHTML = `
+    <table class="ref-table">
+      <thead><tr>
+        <th>Range (cm⁻¹)</th><th>Assignment</th><th>Group</th><th>± (cm⁻¹)</th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`<tr class="${r[6]?'row-310':''}">
+        <td><strong>${esc(r[0])}</strong></td>
+        <td><span class="badge ${r[3]}">${esc(r[1])}</span></td>
+        <td>${esc(r[2])}</td>
+        <td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${esc(r[5])}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+    ${currentProteinType==='310helix' ? `<p style="font-size:9px;font-family:var(--mono);color:var(--blue);margin-top:6px;padding:4px 8px;background:var(--blue-light);border-radius:4px">
+      <strong>Highlighted row</strong> — 3₁₀-Helix sub-range active for this protein type
+    </p>` : ''}
+    <div class="ref-footnotes">
+      <strong>References</strong>
+      <ol>
+        <li>Dong, A., Huang, P. &amp; Caughey, W. S. (1990). Protein secondary structures in water from second-derivative amide I infrared spectra. <em>Biochemistry</em>, 29(13), 3303–3308.</li>
+        <li>Susi, H. &amp; Byler, D. M. (1986). Resolution-enhanced Fourier transform infrared spectroscopy of enzymes. <em>Methods in Enzymology</em>, 130, 290–311.</li>
+        <li>Yan, Z., Li, Q. &amp; Zhang, P. (2017). Soy protein isolate and glycerol hydrogen bonding using 2D-COS ATR FT-IR spectroscopy. <em>Applied Spectroscopy</em>, 71(11), 2437–2445.</li>
+      </ol>
+    </div>`;
+}
+
+function setSolvent(s) {
+  currentSolvent = s;
+  document.getElementById('btn-h2o').classList.toggle('active', s==='H2O');
+  document.getElementById('btn-d2o').classList.toggle('active', s==='D2O');
+  document.getElementById('solvent-note').textContent = SOLVENT_NOTES[s];
+  document.getElementById('ref-table-select').value = s;
+  renderRefTable(s);
+}
+
+function setProteinType(pt) {
+  currentProteinType = pt;
+  document.getElementById('btn-globular').classList.toggle('active', pt==='globular');
+  document.getElementById('btn-310').classList.toggle('active', pt==='310helix');
+  document.getElementById('protein-note').innerHTML = PROTEIN_NOTES[pt];
+  renderRefTable();
+}
+
+// initialise table
+renderRefTable('H2O');
+
+/* ── Pyodide ── */
+async function initPyodide() {
+  try {
+    pyodide = await loadPyodide();
+    await pyodide.runPythonAsync(document.getElementById('py-src').textContent);
+    document.getElementById('init-banner').classList.add('hidden');
+    const b = document.getElementById('py-badge');
+    b.textContent = '✓ Python ready'; b.classList.add('ready');
+  } catch(e) { document.getElementById('init-msg').textContent = 'Engine error: '+e.message; }
+}
+initPyodide();
+
+/* ── Drag & drop ── */
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover',  e=>{e.preventDefault();dz.classList.add('drag-over')});
+dz.addEventListener('dragleave', ()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e=>{e.preventDefault();dz.classList.remove('drag-over');handleFiles(e.dataTransfer.files)});
+document.getElementById('file-input').addEventListener('change', e=>{handleFiles(e.target.files);e.target.value=''});
+
+async function handleFiles(fileList) {
+  if (!pyodide) { showAlert('error','Python not ready yet.'); return; }
+  document.getElementById('proc-alert').className='alert';
+  const loader = document.getElementById('proc-loader');
+  for (const file of fileList) {
+    loader.className='loader-wrap visible';
+    document.getElementById('proc-msg').textContent=`Processing ${file.name}…`;
+    try {
+      const text = await file.text();
+      pyodide.globals.set('_wc', text);
+      pyodide.globals.set('_wf', file.name);
+      pyodide.globals.set('_ws', currentSolvent);
+      pyodide.globals.set('_wp', currentProteinType);
+      const r = JSON.parse(pyodide.runPython('analyze_for_web(_wc,_wf,_ws,_wp)'));
+      if (r.error) { showAlert('error',`${file.name}: ${r.error}`); }
+      else {
+        allResults.push(r);
+        document.getElementById('empty-state').style.display='none';
+        addChip(r);
+        renderResult(r);
+        updateComparison();
+      }
+    } catch(e) { showAlert('error',`${file.name}: ${e.message}`); }
+  }
+  loader.className='loader-wrap';
+}
+
+function showAlert(type, msg) {
+  const el=document.getElementById('proc-alert');
+  el.className=`alert visible ${type}`;
+  document.getElementById('proc-alert-msg').textContent=msg;
+}
+
+function addChip(r) {
+  const tot = r.amide1.details.length+r.amide2.details.length+r.amide3.details.length;
+  const ptLabel = r.protein_type==='310helix' ? '3₁₀' : 'Glob';
+  const c=document.createElement('div');
+  c.className='file-chip';
+  c.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${esc(r.sample_name)} [${r.solvent}·${ptLabel}] (${tot} peaks)`;
+  document.getElementById('file-chips').appendChild(c);
+}
+
+/* ── PNG Export ── */
+function showToast(msg) {
+  const t = document.getElementById('png-toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+async function exportPNG(elementId, filename) {
+  const el = document.getElementById(elementId);
+  if (!el) { showToast('⚠ Element not found'); return; }
+  const panel = el.closest('.amide-panel');
+  let wasHidden = false;
+  if (panel && !panel.classList.contains('active')) {
+    wasHidden = true;
+    panel.style.display = 'block';
+    panel.style.position = 'absolute';
+    panel.style.left = '-9999px';
+  }
+  try {
+    showToast('⏳ Capturing…');
+    const canvas = await html2canvas(el, {
+      backgroundColor:'#ffffff', scale:2, useCORS:true, logging:false,
+      onclone:(cloned)=>{
+        const origCanvases = el.querySelectorAll('canvas');
+        const clonedCanvases = cloned.querySelectorAll('canvas');
+        origCanvases.forEach((orig,i)=>{
+          if (clonedCanvases[i]) {
+            clonedCanvases[i].width=orig.width; clonedCanvases[i].height=orig.height;
+            clonedCanvases[i].getContext('2d').drawImage(orig,0,0);
+          }
+        });
+      }
+    });
+    const link = document.createElement('a');
+    link.download = filename; link.href = canvas.toDataURL('image/png'); link.click();
+    showToast('✓ PNG saved!');
+  } catch(err) { showToast('⚠ Export failed'); console.error(err); }
+  if (wasHidden) { panel.style.display=''; panel.style.position=''; panel.style.left=''; }
+}
+
+/* ── Pie drawing ── */
+function drawPie(canvasId, gs, order) {
+  const canvas=document.getElementById(canvasId); if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const cx=canvas.width/2, cy=canvas.height/2, rad=Math.min(cx,cy)-3;
+  const slices=order.filter(g=>g in gs&&gs[g]>0).map(g=>({pct:gs[g],col:(GC[g]||{pie:'#aaa'}).pie}));
+  const total=slices.reduce((s,sl)=>s+sl.pct,0);
+  let angle=-Math.PI/2;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  slices.forEach(sl=>{
+    const sweep=sl.pct/total*2*Math.PI;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,rad,angle,angle+sweep); ctx.closePath();
+    ctx.fillStyle=sl.col; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    angle+=sweep;
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,rad*.42,0,2*Math.PI);
+  ctx.fillStyle='#fff'; ctx.fill();
+}
+
+/* ── Build one amide panel HTML ── */
+function buildAmidePanel(amideData, pidSuffix, showBeta, ratio) {
+  const {details, group_summary:gs, total_area:tot, group_order:go, beta_sub:bs={}} = amideData;
+  if (!details || details.length===0)
+    return `<div class="no-data">No peaks detected in this region.</div>`;
+
+  const cid = `pie${pidSuffix}`;
+  const mgroups = (go||[]).filter(g=>!['Unassigned','Unassigned II'].includes(g));
+  const metricsHtml = mgroups.filter(g=>g in gs).map(g=>`
+    <div class="metric ${MC[g]||''}">
+      <div class="metric-val">${(gs[g]||0).toFixed(1)}%</div>
+      <div class="metric-lbl">${esc(g)}</div>
+    </div>`).join('');
+
+  const legendHtml = (go||[]).filter(g=>g in gs&&gs[g]>0).map(g=>`
+    <div class="pie-legend-row">
+      <div class="pie-swatch" style="background:${(GC[g]||{pie:'#aaa'}).pie}"></div>
+      <span class="pie-legend-name">${esc(g)}</span>
+      <span class="pie-legend-pct">${gs[g].toFixed(2)}%</span>
+    </div>`).join('');
+
+  const betaHtml = showBeta ? `
+    <div class="beta-breakdown">
+      <div class="beta-breakdown-title">β-Sheet Breakdown — Total ${(gs['β-Sheet']||0).toFixed(2)}%</div>
+      <div class="beta-breakdown-rows">
+        <div class="beta-sub"><div class="beta-sub-val">${(bs.aggregated||0).toFixed(1)}%</div><div class="beta-sub-lbl">Aggregated<br/>(1600–1627 cm⁻¹)</div></div>
+        <div class="beta-sub"><div class="beta-sub-val">${(bs.main||0).toFixed(1)}%</div><div class="beta-sub-lbl">Parallel (Main)<br/>(1628–1642 cm⁻¹)</div></div>
+        <div class="beta-sub"><div class="beta-sub-val">${(bs.antiparallel||0).toFixed(1)}%</div><div class="beta-sub-lbl">Anti-parallel<br/>(1680–1695 cm⁻¹)</div></div>
+      </div>
+    </div>` : '';
+
+  const ratioHtml = (ratio!=null && showBeta) ? `
+    <div class="ratio-chip">α/β ratio: <strong>${ratio.toFixed(3)}</strong>&nbsp;&nbsp;α ${(gs['α-Helix']||0).toFixed(2)}% / β ${(gs['β-Sheet']||0).toFixed(2)}%</div>` : '';
+
+  const sumRows = (go||[]).filter(g=>g in gs).map(g=>`<tr>
+    <td><span class="badge ${(GC[g]||{badge:'badge-unassigned'}).badge}">${esc(g)}</span></td>
+    <td>${gs[g].toFixed(2)}%</td>
+  </tr>`).join('');
+
+  const pkRows = details.map(d=>`<tr>
+    <td>${d.peak}</td><td>${d.center.toFixed(2)}</td><td>${d.area.toFixed(5)}</td>
+    <td><span class="badge ${(GC[d.group]||{badge:'badge-unassigned'}).badge}">${esc(d.detail_label)}</span></td>
+    <td>${esc(d.group)}</td><td>${d.pct.toFixed(2)}%</td>
+  </tr>`).join('');
+
+  const gsid=`gs${pidSuffix}`, pdid=`pd${pidSuffix}`;
+  return `
+    <div class="metrics-row">${metricsHtml}</div>
+    <div class="vis-row">
+      <div class="pie-canvas-wrap"><canvas id="${cid}" width="130" height="130"></canvas></div>
+      <div class="pie-legend">${legendHtml}</div>
+    </div>
+    ${ratioHtml}
+    ${betaHtml}
+    <div class="region-divider"></div>
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="switchSub(this,'${gsid}')">Group Summary</button>
+      <button class="sub-tab"        onclick="switchSub(this,'${pdid}')">Peak Detail</button>
+    </div>
+    <div id="${gsid}" class="sub-panel active">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Group</th><th>% Contribution</th></tr></thead>
+        <tbody>${sumRows}</tbody>
+      </table></div>
+      <p class="area-note">Total area: ${tot.toFixed(5)} &nbsp;|&nbsp; ${details.length} peaks</p>
+    </div>
+    <div id="${pdid}" class="sub-panel">
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Center (cm⁻¹)</th><th>Area</th><th>Assignment</th><th>Group</th><th>%</th></tr></thead>
+        <tbody>${pkRows}</tbody>
+      </table></div>
+    </div>`;
+}
+
+const pngIcon=`<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+
+/* ── Render full result card ── */
+let cardIndex = 0;
+function renderResult(r) {
+  const area = document.getElementById('results-area');
+  if (allResults.length===1) {
+    const lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent='Results';
+    area.appendChild(lbl);
+  }
+  cardIndex++;
+  const sid = `c${cardIndex}`;
+  const card = document.createElement('div');
+  card.className='result-card'; card.id=`result-${sid}`; card.__result=r;
+
+  const a1id=`a1-${sid}`, a2id=`a2-${sid}`, a3id=`a3-${sid}`;
+  const a2empty=(!r.amide2.details||r.amide2.details.length===0);
+  const a3empty=(!r.amide3.details||r.amide3.details.length===0);
+  const cap1=`cap-a1-${sid}`, cap2=`cap-a2-${sid}`, cap3=`cap-a3-${sid}`;
+  const ptLabel = r.protein_type==='310helix' ? '3₁₀-Helix rich' : 'Globular';
+
+  card.innerHTML=`
+    <div class="result-card-title">
+      ${esc(r.sample_name)}
+      <span class="result-card-file">${esc(r.filename)}</span>
+      <span class="result-card-solvent">${esc(r.solvent)}</span>
+      <span class="result-card-protein">${esc(ptLabel)}</span>
+    </div>
+    <div class="amide-tabs">
+      <button class="amide-tab active" onclick="switchAmide(this,'${a1id}')">
+        <span class="amide-tab-pip i"></span>Amide I <span class="amide-range">1600–1700 cm⁻¹</span>
+      </button>
+      <button class="amide-tab" onclick="switchAmide(this,'${a2id}')"${a2empty?' style="opacity:.4"':''}>
+        <span class="amide-tab-pip ii"></span>Amide II <span class="amide-range">1480–1575 cm⁻¹</span>
+        ${a2empty?'<span style="font-size:8px;font-family:var(--mono);color:var(--muted)">(none)</span>':''}
+      </button>
+      <button class="amide-tab" onclick="switchAmide(this,'${a3id}')"${a3empty?' style="opacity:.4"':''}>
+        <span class="amide-tab-pip iii"></span>Amide III <span class="amide-range">1220–1340 cm⁻¹</span>
+        ${a3empty?'<span style="font-size:8px;font-family:var(--mono);color:var(--muted)">(none)</span>':''}
+      </button>
+    </div>
+    <div id="${a1id}" class="amide-panel active">
+      <div id="${cap1}" class="png-capture-wrap" style="padding:12px 4px 4px">
+        ${buildAmidePanel(r.amide1,`_a1_${sid}`,true,r.ratio)}
+      </div>
+      <div class="dl-row">
+        <button class="btn" onclick="downloadTXT('${sid}')">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>TXT
+        </button>
+        <button class="btn png" onclick="exportPNG('${cap1}','${r.sample_name}_amide-I.png')">
+          ${pngIcon} PNG · Amide I
+        </button>
+      </div>
+    </div>
+    <div id="${a2id}" class="amide-panel">
+      <div id="${cap2}" class="png-capture-wrap" style="padding:12px 4px 4px">
+        ${a2empty?`<div class="no-data">No Amide II peaks detected (1480–1575 cm⁻¹).</div>`:buildAmidePanel(r.amide2,`_a2_${sid}`,false,null)}
+      </div>
+      ${!a2empty?`<div class="dl-row"><button class="btn png" onclick="exportPNG('${cap2}','${r.sample_name}_amide-II.png')">${pngIcon} PNG · Amide II</button></div>`:''}
+    </div>
+    <div id="${a3id}" class="amide-panel">
+      <div id="${cap3}" class="png-capture-wrap" style="padding:12px 4px 4px">
+        ${a3empty?'<div class="no-data">No Amide III peaks detected (1220–1340 cm⁻¹).</div>':buildAmidePanel(r.amide3,`_a3_${sid}`,false,null)}
+      </div>
+      ${!a3empty?`<div class="dl-row"><button class="btn png" onclick="exportPNG('${cap3}','${r.sample_name}_amide-III.png')">${pngIcon} PNG · Amide III</button></div>`:''}
+    </div>`;
+
+  area.appendChild(card);
+  requestAnimationFrame(()=>{
+    drawPie(`pie_a1_${sid}`, r.amide1.group_summary, r.amide1.group_order||[]);
+    if (!a2empty) drawPie(`pie_a2_${sid}`, r.amide2.group_summary, r.amide2.group_order||[]);
+    if (!a3empty) drawPie(`pie_a3_${sid}`, r.amide3.group_summary, r.amide3.group_order||[]);
+  });
+}
+
+function switchAmide(btn, id) {
+  const card = btn.closest('.result-card');
+  card.querySelectorAll('.amide-tab').forEach(t=>t.classList.remove('active'));
+  card.querySelectorAll('.amide-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  const panel = document.getElementById(id);
+  const cv = panel.querySelector('canvas');
+  if (cv) {
+    const pid = cv.id;
+    const r = btn.closest('.result-card').__result;
+    const which = pid.includes('_a2_')?'amide2':pid.includes('_a3_')?'amide3':'amide1';
+    drawPie(pid, r[which].group_summary, r[which].group_order||[]);
+  }
+}
+
+function switchSub(btn, id) {
+  const ap = btn.closest('.amide-panel');
+  ap.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
+  ap.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* ── Comparison ── */
+function updateComparison() {
+  if (allResults.length < 2) return;
+  const area = document.getElementById('comparison-area');
+  area.innerHTML='';
+  const lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent='Multi-sample comparison (Amide I)';
+  area.appendChild(lbl);
+  const card=document.createElement('div'); card.className='result-card'; card.id='comparison-card';
+  const groups=['β-Sheet','α-Helix','3₁₀-Helix','Random Coil','β-Turns'];
+  const rows=allResults.map(r=>{
+    const gs=r.amide1.group_summary, bs=r.amide1.beta_sub||{};
+    const ptLabel=r.protein_type==='310helix'?'3₁₀':'Glob';
+    return `<tr>
+      <td style="font-weight:700">${esc(r.sample_name)}</td>
+      <td><span style="font-size:9px;font-family:var(--mono);background:var(--forest);color:#fff;padding:1px 5px;border-radius:3px">${r.solvent}</span></td>
+      <td><span style="font-size:9px;font-family:var(--mono);background:var(--blue);color:#fff;padding:1px 5px;border-radius:3px">${ptLabel}</span></td>
+      ${groups.map(g=>`<td>${(gs[g]||0).toFixed(2)}%</td>`).join('')}
+      <td>${(bs.aggregated||0).toFixed(2)}%</td>
+      <td>${(bs.main||0).toFixed(2)}%</td>
+      <td>${(bs.antiparallel||0).toFixed(2)}%</td>
+      <td>${r.ratio!=null?r.ratio.toFixed(3):'N/A'}</td>
+    </tr>`;
+  }).join('');
+  card.innerHTML=`
+    <div class="result-card-title">Comparison — ${allResults.length} samples</div>
+    <div id="comparison-table-capture" class="png-capture-wrap" style="padding:8px 4px 4px">
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Sample</th><th>Solvent</th><th>Type</th>
+          ${groups.map(g=>`<th>${esc(g)}</th>`).join('')}
+          <th>Agg.β%</th><th>Para.β%</th><th>Anti.β%</th><th>α/β</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>
+    <div class="dl-row">
+      <button class="btn primary" onclick="downloadComparisonTXT()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>TXT
+      </button>
+      <button class="btn png" onclick="exportPNG('comparison-table-capture','comparison_table.png')">
+        ${pngIcon} PNG · Comparison
+      </button>
+    </div>`;
+  area.appendChild(card);
+}
+
+/* ── Text downloads ── */
+function downloadTXT(sid) {
+  const card=document.getElementById(`result-${sid}`);
+  const r=card.__result;
+  const a1=r.amide1,a2=r.amide2,a3=r.amide3,bs=a1.beta_sub||{};
+  const ptLabel=r.protein_type==='310helix'?'3₁₀-Helix rich':'Globular';
+  const S='='.repeat(65);
+  let L=[S,'  PROTEIN SECONDARY STRUCTURE CALCULATOR',
+    `  Sample:       ${r.sample_name}`,
+    `  File:         ${r.filename}`,
+    `  Solvent:      ${r.solvent}`,
+    `  Protein type: ${ptLabel}`,S,'',
+    '  ── AMIDE I (1600–1700 cm⁻¹) ──',`  Total area: ${a1.total_area.toFixed(5)}`,'',
+    '  Peak Detail:',
+    `  ${'#'.padEnd(4)}  ${'Center'.padEnd(12)}  ${'Area'.padEnd(12)}  ${'Assignment'.padEnd(28)}  ${'Group'.padEnd(16)}  ${'%'.padStart(6)}`,
+    '  '+'-'.repeat(84)];
+  a1.details.forEach(d=>L.push(`  ${String(d.peak).padEnd(4)}  ${d.center.toFixed(2).padEnd(12)}  ${d.area.toFixed(5).padEnd(12)}  ${d.detail_label.padEnd(28)}  ${d.group.padEnd(16)}  ${d.pct.toFixed(2).padStart(6)}%`));
+  L.push('','  Group Summary:');
+  (a1.group_order||[]).filter(g=>g in a1.group_summary).forEach(g=>L.push(`  ${g.padEnd(30)}  ${a1.group_summary[g].toFixed(2).padStart(6)}%`));
+  L.push('','  β-Sheet Breakdown:',
+    `  Aggregated         : ${(bs.aggregated||0).toFixed(2)}%`,
+    `  Parallel (Main)    : ${(bs.main||0).toFixed(2)}%`,
+    `  Anti-parallel      : ${(bs.antiparallel||0).toFixed(2)}%`);
+  if(r.ratio!=null) L.push(`\n  α/β Ratio: ${r.ratio.toFixed(3)}`);
+  if(a2.details&&a2.details.length){
+    L.push('',S,'  ── AMIDE II (1480–1575 cm⁻¹) ──',`  Total area: ${a2.total_area.toFixed(5)}`,'');
+    a2.details.forEach(d=>L.push(`  ${String(d.peak).padEnd(4)}  ${d.center.toFixed(2).padEnd(12)}  ${d.area.toFixed(5).padEnd(12)}  ${d.detail_label.padEnd(28)}  ${d.group.padEnd(16)}  ${d.pct.toFixed(2).padStart(6)}%`));
+  }
+  if(a3.details&&a3.details.length){
+    L.push('',S,'  ── AMIDE III (1220–1340 cm⁻¹) ──',`  Total area: ${a3.total_area.toFixed(5)}`,'');
+    a3.details.forEach(d=>L.push(`  ${String(d.peak).padEnd(4)}  ${d.center.toFixed(2).padEnd(12)}  ${d.area.toFixed(5).padEnd(12)}  ${d.detail_label.padEnd(28)}  ${d.group.padEnd(16)}  ${d.pct.toFixed(2).padStart(6)}%`));
+  }
+  L.push('',S);
+  triggerDL(L.join('\n'),`${r.sample_name}_secondary_structure.txt`,'text/plain');
+}
+
+function downloadComparisonTXT() {
+  const groups=['β-Sheet','α-Helix','3₁₀-Helix','Random Coil','β-Turns'];
+  const S='='.repeat(110); let L=[S,'  MULTI-SAMPLE COMPARISON (Amide I)',S,''];
+  L.push(`  ${'Sample'.padEnd(25)}  ${'Sol'.padEnd(5)}  ${'Type'.padEnd(12)}  ${groups.map(g=>g.padEnd(12)).join('  ')}  ${'Agg.β'.padEnd(8)}  ${'Para.β'.padEnd(8)}  ${'Anti.β'.padEnd(8)}  ${'α/β'.padStart(6)}`,'  '+'-'.repeat(110));
+  allResults.forEach(r=>{
+    const gs=r.amide1.group_summary,bs=r.amide1.beta_sub||{};
+    const ptLabel=r.protein_type==='310helix'?'3₁₀-Helix rich':'Globular';
+    L.push(`  ${r.sample_name.padEnd(25)}  ${r.solvent.padEnd(5)}  ${ptLabel.padEnd(12)}  ${groups.map(g=>(gs[g]||0).toFixed(2).padEnd(12)).join('  ')}  ${(bs.aggregated||0).toFixed(2).padEnd(8)}  ${(bs.main||0).toFixed(2).padEnd(8)}  ${(bs.antiparallel||0).toFixed(2).padEnd(8)}  ${r.ratio!=null?r.ratio.toFixed(3).padStart(6):'   N/A'}`);
+  });
+  L.push('',S);
+  triggerDL(L.join('\n'),'comparison_secondary_structure.txt','text/plain');
+}
+
+function triggerDL(content, filename, mime) {
+  const a=Object.assign(document.createElement('a'),{
+    href:URL.createObjectURL(new Blob([content],{type:mime+';charset=utf-8;'})),
+    download:filename
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ── Documentation PDF download (embedded base64) ── */
+const DOC_PDF_B64 = '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';
+
+function downloadDocumentation() {
+  try {
+    const byteChars = atob(DOC_PDF_B64);
+    const byteNums = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNums[i] = byteChars.charCodeAt(i);
+    }
+    const blob = new Blob([new Uint8Array(byteNums)], {type: 'application/pdf'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'SecStruct_Calculator_Documentation.pdf';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    console.warn('PDF embed failed, using text fallback:', e);
+    openDocFallback();
+  }
+}
+
+function openDocFallback() {
+  const doc = `SECSTRUCT CALCULATOR — DOCUMENTATION\n=====================================\n\nSee the full PDF documentation included with this tool.\nDeveloped by Sana A. E. Abzakh — sanaabzakh262@gmail.com\n`;
+  triggerDL(doc,'SecStruct_Calculator_Documentation.txt','text/plain');
+}
+
+/* ── Example CSV ── */
+const EXAMPLE_CSV=`Peak  Type,a0,a1
+1  Gauss Area,1.59058735,1487.10655
+2  Gauss Area,1.92563363,1510.16619
+3  Gauss Area,2.82564455,1529.90185
+4  Gauss Area,3.7231001,1549.42688
+5  Gauss Area,2.44687929,1569.22292
+6  Gauss Area,2.09969959,1587.17638
+7  Gauss Area,1.80231056,1603.71957
+8  Gauss Area,1.56965764,1615.06068
+9  Gauss Area,3.23420479,1628.15919
+10  Gauss Area,4.50951954,1641.82573
+11  Gauss Area,5.75423649,1658.12803
+12  Gauss Area,3.14674435,1674.97106
+13  Gauss Area,2.0568764,1690.26538
+14  Gauss Area,1.25212566,1710.00948`;
+
+function downloadExampleCSV(){
+  const a=Object.assign(document.createElement('a'),{
+    href:URL.createObjectURL(new Blob([EXAMPLE_CSV],{type:'text/csv'})),
+    download:'example_peakfit_output.csv'
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+</script>
+</body>
+</html>
