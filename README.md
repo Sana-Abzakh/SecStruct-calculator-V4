@@ -7,7 +7,7 @@ Estimate protein secondary structure composition from FTIR spectra. SecStruct Ca
 
 **Repository:** <https://github.com/Sana-Abzakh/secstruct-calculator>
 
-It comes in two forms that share the same band-assignment logic:
+
 
 | Version | File | Best for |
 |---|---|---|
